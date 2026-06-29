@@ -20,15 +20,25 @@ pnpm preview    # 预览构建产物
 
 ```
 data/
+  math-elementary.json    宏观全局图(小学数学 四领域 × 六年级;2–6 年级为概览草稿)
   math-grade1.json        单一真相源(苏教版一年级数学,见说明第 5.2 节)
   curriculum.schema.md    字段定义
 src/
-  data/   types.ts(schema 类型) · veins.ts(脉/境界常量) · curriculum.ts(加载+派生)
+  data/   types.ts(schema 类型) · veins.ts(脉/境界) · domains.ts(四领域) · curriculum.ts(加载+派生)
   lib/    progress.ts(技能树进度 → localStorage)
-  views/  TreeView 生命之树 · SkillTreeView 修炼路线 · AtlasView 真身谱
+  views/  MapView 全局之树 · TreeView 生命之树 · SkillTreeView 修炼路线 · AtlasView 真身谱
   app/    App + 顶层导航 + 主题(暗色 ↔ 儿童亮色)
   styles/ theme.css(设计 token,双主题) · global.css
 ```
+
+## 两层导航(地图 → 详图)
+
+- **全局之树**(MapView,落地页):整个小学数学的墨线古树。从树基「计数」向上按年级 1→6 生长,
+  四领域(数与代数/图形与几何/统计与概率/综合与实践)向两侧抽枝、按领域着色,右侧括注年级。
+  **一年级在树基、已点亮**,点开钻取进入下面的一年级详图;2–6 年级为枝芽概览。
+- 进入后即下表三个**一年级**详视图。
+
+> ⚠️ `math-elementary.json` 里 **2–6 年级为概览草稿**,需对课本逐条核对(见说明第 6 节「权威核对」)。一年级与详图数据一致。
 
 ## 三个视图(同源,渲染同一批数据)
 

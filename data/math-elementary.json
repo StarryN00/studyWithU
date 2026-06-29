@@ -1,0 +1,42 @@
+[
+  { "id":"g1-A1","grade":1,"domain":"A","name":"20以内数与加减","detail":"grade1" },
+  { "id":"g1-A2","grade":1,"domain":"A","name":"100以内数的认识","detail":"grade1" },
+  { "id":"g1-G1","grade":1,"domain":"G","name":"立体与平面图形","detail":"grade1" },
+  { "id":"g1-G2","grade":1,"domain":"G","name":"上下左右·位置","detail":"grade1" },
+  { "id":"g1-S1","grade":1,"domain":"S","name":"分一分(分类整理)","detail":"grade1" },
+  { "id":"g1-P1","grade":1,"domain":"P","name":"认识人民币·购物","detail":"grade1" },
+
+  { "id":"g2-A1","grade":2,"domain":"A","name":"表内乘除法" },
+  { "id":"g2-A2","grade":2,"domain":"A","name":"万以内数的认识" },
+  { "id":"g2-G1","grade":2,"domain":"G","name":"角的初步认识" },
+  { "id":"g2-G2","grade":2,"domain":"G","name":"米和厘米(长度)" },
+  { "id":"g2-S1","grade":2,"domain":"S","name":"数据收集与整理" },
+  { "id":"g2-P1","grade":2,"domain":"P","name":"认识时间·克与千克" },
+
+  { "id":"g3-A1","grade":3,"domain":"A","name":"多位数乘除法" },
+  { "id":"g3-A2","grade":3,"domain":"A","name":"分数·小数的初步认识" },
+  { "id":"g3-G1","grade":3,"domain":"G","name":"长方形正方形周长与面积" },
+  { "id":"g3-S1","grade":3,"domain":"S","name":"可能性" },
+  { "id":"g3-P1","grade":3,"domain":"P","name":"年月日·搭配" },
+
+  { "id":"g4-A1","grade":4,"domain":"A","name":"大数的认识·运算定律" },
+  { "id":"g4-A2","grade":4,"domain":"A","name":"小数的意义与加减" },
+  { "id":"g4-G1","grade":4,"domain":"G","name":"三角形·平行与垂直" },
+  { "id":"g4-G2","grade":4,"domain":"G","name":"角的度量" },
+  { "id":"g4-S1","grade":4,"domain":"S","name":"条形统计图·平均数" },
+  { "id":"g4-P1","grade":4,"domain":"P","name":"优化·植树问题" },
+
+  { "id":"g5-A1","grade":5,"domain":"A","name":"小数乘除法" },
+  { "id":"g5-A2","grade":5,"domain":"A","name":"因数倍数·分数加减" },
+  { "id":"g5-A3","grade":5,"domain":"A","name":"简易方程" },
+  { "id":"g5-G1","grade":5,"domain":"G","name":"多边形面积·体积表面积" },
+  { "id":"g5-S1","grade":5,"domain":"S","name":"折线统计图·可能性" },
+  { "id":"g5-P1","grade":5,"domain":"P","name":"数字编码" },
+
+  { "id":"g6-A1","grade":6,"domain":"A","name":"分数乘除·百分数" },
+  { "id":"g6-A2","grade":6,"domain":"A","name":"比和比例·负数" },
+  { "id":"g6-G1","grade":6,"domain":"G","name":"圆·圆柱圆锥" },
+  { "id":"g6-G2","grade":6,"domain":"G","name":"图形的运动·比例尺" },
+  { "id":"g6-S1","grade":6,"domain":"S","name":"扇形统计图" },
+  { "id":"g6-P1","grade":6,"domain":"P","name":"数与形·综合应用" }
+]

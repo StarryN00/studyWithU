@@ -41,3 +41,20 @@ export interface Node {
 
 /** 一门学科的完整数据集。 */
 export type Curriculum = Node[]
+
+// —— 宏观地图(整个小学数学的全局之树)——
+// 新课标四领域 × 六年级。这是「数学这片大陆」的内部全图(家长/建站者俯瞰)。
+
+/** 新课标四大内容领域。 */
+export type DomainId = 'A' | 'G' | 'S' | 'P'
+
+/** 宏观地图上的一个主题(某年级 × 某领域的内容簇)。 */
+export interface MacroTopic {
+  id: string
+  /** 学段年级 1..6 */
+  grade: number
+  domain: DomainId
+  name: string
+  /** 标记可钻取到的详图数据集,如 "grade1" → 现有一年级详图 */
+  detail?: string
+}

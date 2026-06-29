@@ -36,8 +36,28 @@
 
 .app__nav {
   display: flex;
+  align-items: center;
   gap: 0.4rem;
   margin-left: auto;
+}
+
+.app__group {
+  margin-left: 0.6rem;
+  padding-left: 0.7rem;
+  border-left: 1px solid var(--line-strong);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+}
+
+.tab--map .tab__label {
+  color: var(--jade);
+}
+.tab--map.tab--on .tab__label {
+  color: var(--gold);
 }
 
 .tab {
