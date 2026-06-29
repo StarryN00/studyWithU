@@ -1,0 +1,119 @@
+/* 真身谱(墨谱)—— 按六脉重排的静态俯瞰;点开知识点看它的化形。 */
+
+.atlas {
+  height: 100%;
+  overflow: auto;
+  padding: 1.4rem 1.4rem 3rem;
+}
+
+.atlas__intro {
+  max-width: 760px;
+  margin: 0 auto 1.6rem;
+  text-align: center;
+  color: var(--dim);
+  font-size: var(--fs-body);
+}
+.atlas__intro b {
+  color: var(--jade);
+  font-weight: 500;
+}
+.atlas__intro i {
+  color: var(--cinnabar);
+  font-style: normal;
+}
+
+.atlas__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.1rem;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.atlas-col {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0.9rem;
+  background: color-mix(in srgb, var(--night-2) 60%, transparent);
+}
+.atlas-col__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--line);
+}
+.atlas-col__bar {
+  width: 4px;
+  height: 1.2rem;
+  border-radius: 2px;
+}
+.atlas-col__name {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.atlas-col__count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--dim);
+}
+
+.atlas-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  margin-bottom: 0.6rem;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.atlas-card:hover {
+  border-color: var(--line-strong);
+  background: var(--line);
+}
+.atlas-card__top {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.atlas-card__tier {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--dim);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+}
+.atlas-card__name {
+  font-size: 1rem;
+  font-weight: 500;
+}
+.atlas-card__truth {
+  margin: 0.35rem 0 0;
+  color: var(--jade);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+.atlas-card__forms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed var(--line);
+}
+.atlas-card__forms-label {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--dim);
+  letter-spacing: 0.08em;
+}
+.atlas-card__note {
+  margin: 0.5rem 0 0;
+  font-size: 0.74rem;
+  color: var(--dim);
+  line-height: 1.5;
+}

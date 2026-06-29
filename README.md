@@ -1,0 +1,52 @@
+# 知识地图 · 一年级数学
+
+AI 陪伴下的孩子学习系统。核心隐喻:**好奇 → 探索 → 惊喜**。
+完整理念、两个孩子的设计输入、概念框架与护栏见 [项目说明-知识地图学习系统.md](项目说明-知识地图学习系统.md)。
+
+> **不变量**:数据是真相,视图是它的不同化形。新增知识点 = 往数据里加一条;优化 = 改某条的字段。
+
+## 跑起来
+
+```bash
+pnpm install
+pnpm dev        # http://localhost:5173
+pnpm build      # 类型检查 + 生产构建到 dist/
+pnpm preview    # 预览构建产物
+```
+
+技术栈:Vite + React + TypeScript,纯静态,v1 无后端。
+
+## 结构
+
+```
+data/
+  math-grade1.json        单一真相源(苏教版一年级数学,见说明第 5.2 节)
+  curriculum.schema.md    字段定义
+src/
+  data/   types.ts(schema 类型) · veins.ts(脉/境界常量) · curriculum.ts(加载+派生)
+  lib/    progress.ts(技能树进度 → localStorage)
+  views/  TreeView 生命之树 · SkillTreeView 修炼路线 · AtlasView 真身谱
+  app/    App + 顶层导航 + 主题(暗色 ↔ 儿童亮色)
+  styles/ theme.css(设计 token,双主题) · global.css
+```
+
+## 三个视图(同源,渲染同一批数据)
+
+| 视图 | 表达的关系 | 消费字段 | 回答 |
+|---|---|---|---|
+| **生命之树** | 归属:脉→知识点→题型,左→右生长 | `vein` + `forms` | 整体有哪些 |
+| **修炼路线** | 前置依赖(DAG),点亮解锁 | `tier` + `req` | 什么时候学什么 |
+| **真身谱** | 按脉俯瞰真身,点开看化形 | `vein`/`truth` + `forms` | 俯瞰真身/化形 |
+
+主题:右上角切换 暗色「夜林」(家长/建站者)↔ 儿童亮色大字。进度记在浏览器 localStorage。
+
+## 加内容 / 扩展
+
+- **加知识点**:往 `data/math-grade1.json` 加一条(字段见 schema)。`req` 可跨脉。
+- **加学科**:提供一份同构的 `*.json`,同一套视图即可复用。
+- **改进**:打磨 `truth`/`forms`/`req`;开发期 `curriculum.ts` 会校验前置 id 是否存在。
+
+## 护栏(改动前必读,见说明第 9 节)
+
+AI 是暗器不是答案机 · 不给已热爱的事发奖励 · 升级给称号权利不给数字 ·
+不做排行榜/PvP · 数学先懂原理再看伪装 · 技能树是镜子不是贿赂。

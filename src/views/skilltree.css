@@ -1,0 +1,89 @@
+/* 修炼路线(技能树/DAG)节点状态样式。
+   脉色用 --vc(由各节点 style 设为 var(--vein-xx),随主题切换),
+   避免在 SVG 表现属性里写 var() 的坑(见说明第 5.3 节)。 */
+
+.sk-col-label {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  fill: var(--dim);
+  text-anchor: middle;
+  letter-spacing: 0.1em;
+}
+
+.sk-node {
+  cursor: pointer;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.sk-node rect {
+  transition: fill 0.3s ease, stroke 0.3s ease, opacity 0.3s ease;
+}
+.sk-node text {
+  font-family: var(--font-serif);
+  font-size: var(--node-fs);
+  text-anchor: middle;
+  dominant-baseline: middle;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* 锁定:灰、压暗 */
+.sk-node--locked rect {
+  fill: var(--lock-fill);
+  stroke: var(--lock-edge);
+}
+.sk-node--locked text {
+  fill: var(--dim);
+}
+
+/* 可学:脉色描边、微光、低饱和填充 —— 在召唤「来点我」 */
+.sk-node--open rect {
+  fill: color-mix(in srgb, var(--vc) 16%, var(--night));
+  stroke: var(--vc);
+  animation: sk-breathe 2.4s ease-in-out infinite;
+}
+.sk-node--open text {
+  fill: var(--paper);
+}
+
+/* 已学会:脉色实心 */
+.sk-node--done rect {
+  fill: var(--vc);
+  stroke: var(--vc);
+}
+.sk-node--done text {
+  fill: #0b110d;
+  font-weight: 600;
+}
+
+@keyframes sk-breathe {
+  0%,
+  100% {
+    stroke-opacity: 0.55;
+  }
+  50% {
+    stroke-opacity: 1;
+  }
+}
+
+.sk-edge {
+  fill: none;
+  stroke-width: 1.6;
+  transition: stroke-opacity 0.3s ease;
+}
+
+.sk-reset {
+  position: absolute;
+  right: 1.2rem;
+  bottom: 1.2rem;
+  padding: 0.4rem 0.8rem;
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  font-size: var(--fs-label);
+  color: var(--dim);
+  z-index: 6;
+}
+.sk-reset:hover {
+  border-color: var(--cinnabar);
+  color: var(--cinnabar);
+}

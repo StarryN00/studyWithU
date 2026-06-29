@@ -1,0 +1,11 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+.vite
+*.log
+*.tsbuildinfo
+
+# 工具的 brainstorm 会话状态,非项目源码
+.superpowers/

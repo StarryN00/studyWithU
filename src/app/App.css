@@ -1,0 +1,109 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* 顶栏 */
+.app__bar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.7rem 1.4rem;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--night) 70%, transparent);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app__brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.app__seed {
+  font-size: var(--fs-title);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.app__sub {
+  font-size: var(--fs-label);
+  color: var(--dim);
+  letter-spacing: 0.18em;
+}
+
+.app__nav {
+  display: flex;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.4rem 0.9rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.tab:hover {
+  background: var(--line);
+}
+.tab--on {
+  background: var(--line);
+  border-color: var(--line-strong);
+}
+.tab__label {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+}
+.tab--on .tab__label {
+  color: var(--gold);
+}
+.tab__hint {
+  font-size: 0.65rem;
+  color: var(--dim);
+  letter-spacing: 0.05em;
+}
+
+.theme-toggle {
+  padding: 0.45rem 0.8rem;
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  font-size: var(--fs-label);
+  transition: border-color 0.2s, color 0.2s;
+}
+.theme-toggle:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* 视图舞台 */
+.app__stage {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 720px) {
+  .app__bar {
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
+  .app__nav {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+    overflow-x: auto;
+  }
+  .tab__hint {
+    display: none;
+  }
+}

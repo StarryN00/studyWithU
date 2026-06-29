@@ -1,0 +1,96 @@
+/* 设计 token —— 对应「项目说明」第 7 节。
+   数据共享、皮肤分离:同一份数据,两套主题。
+   - 默认(:root)= 暗色「夜林」,面向家长/建站者,信息密、耐看、好拍。
+   - [data-theme="child"] = 儿童模式,亮色、字更大、更简。
+   脉色在两套主题里保持语义稳定(略调明度以适配底色)。 */
+
+:root {
+  /* —— 暗色「夜林」(默认) —— */
+  --night: #0b110d;
+  --night-2: #0e1611;
+  --paper: #eae6da;
+  --dim: #9a9486;
+  --line: rgba(234, 230, 218, 0.1);
+  --line-strong: rgba(234, 230, 218, 0.18);
+
+  /* 锁定态 */
+  --lock-fill: #2a2f29;
+  --lock-edge: #3b423a;
+
+  /* 语义色 */
+  --gold: #d9b65a; /* 脉络/缘起/主干 */
+  --jade: #8fbf86; /* 真身/玉 */
+  --cinnabar: #e07a55; /* 化形/题型/朱砂 */
+
+  /* 脉色(与 src/data/veins.ts 同步;字面值,供 CSS 用) */
+  --vein-shu: #d9b65a;
+  --vein-jj: #e07a55;
+  --vein-bi: #6fb7ad;
+  --vein-fl: #8aa6d8;
+  --vein-tu: #8fbf86;
+  --vein-rmb: #c98bb5;
+
+  /* 字体 */
+  --font-serif: 'Noto Serif SC', 'Songti SC', serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', ui-monospace, monospace;
+
+  /* 排版尺度(儿童模式整体放大) */
+  --fs-title: 1.5rem;
+  --fs-body: 0.95rem;
+  --fs-label: 0.75rem;
+  --node-fs: 13px;
+
+  /* 径向柔光背景 */
+  --bg: radial-gradient(
+      1200px 800px at 30% -10%,
+      rgba(217, 182, 90, 0.06),
+      transparent 60%
+    ),
+    radial-gradient(
+      1000px 700px at 100% 110%,
+      rgba(143, 191, 134, 0.05),
+      transparent 60%
+    ),
+    var(--night);
+
+  color-scheme: dark;
+}
+
+[data-theme='child'] {
+  /* —— 儿童亮色大字 —— */
+  --night: #fbf7ee;
+  --night-2: #f3ecdd;
+  --paper: #2c2a25;
+  --dim: #6f6a5e;
+  --line: rgba(44, 42, 37, 0.12);
+  --line-strong: rgba(44, 42, 37, 0.22);
+
+  --lock-fill: #e7e0d0;
+  --lock-edge: #cfc7b3;
+
+  --gold: #b8902b;
+  --jade: #5a9b50;
+  --cinnabar: #d05f37;
+
+  /* 脉色:亮底上略压暗以保证对比 */
+  --vein-shu: #c79a25;
+  --vein-jj: #d05f37;
+  --vein-bi: #3f9387;
+  --vein-fl: #5d7fc4;
+  --vein-tu: #5a9b50;
+  --vein-rmb: #b25e96;
+
+  --fs-title: 2rem;
+  --fs-body: 1.15rem;
+  --fs-label: 0.95rem;
+  --node-fs: 17px;
+
+  --bg: radial-gradient(
+      1200px 800px at 30% -10%,
+      rgba(217, 182, 90, 0.12),
+      transparent 60%
+    ),
+    var(--night);
+
+  color-scheme: light;
+}
