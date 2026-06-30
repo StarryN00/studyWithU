@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Node, VeinId } from '../data/types'
 import { NODES } from '../data/curriculum'
 import { VEIN_ORDER, veinColor, veinName } from '../data/veins'
@@ -99,23 +99,57 @@ function radius(kind: Kind): number {
   return kind === 'root' ? 7 : kind === 'vein' ? 6 : kind === 'node' ? 5 : 3.5
 }
 
+/** 逐帧插值后的位置与透明度。 */
+interface AnimPos {
+  x: number
+  y: number
+  opacity: number
+}
+
 export function TreeView() {
   const tree = useMemo(buildTree, [])
-  const [expanded, setExpanded] = useState<Set<string>>(
-    () => new Set<string>(['root', ...VEIN_ORDER.map((v) => `v:${v}`)]),
-  )
+  // 默认只展开到「脉」这一层:显示根 + 六条脉,知识点收起,用户自行点开。
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set<string>(['root']))
   const [hover, setHover] = useState<Node | null>(null)
 
-  const { placed, width, height } = useMemo(
-    () => layout(tree, expanded),
-    [tree, expanded],
-  )
-  const posById = useMemo(() => {
-    const m = new Map<string, Placed>()
-    for (const p of placed) m.set(p.item.id, p)
+  // —— 由树派生的静态索引 ——
+  const itemById = useMemo(() => {
+    const m = new Map<string, TItem>()
+    const walk = (it: TItem) => {
+      m.set(it.id, it)
+      it.children.forEach(walk)
+    }
+    walk(tree)
     return m
-  }, [placed])
-
+  }, [tree])
+  const parentOf = useMemo(() => {
+    const m = new Map<string, string>()
+    const walk = (it: TItem) =>
+      it.children.forEach((c) => {
+        m.set(c.id, it.id)
+        walk(c)
+      })
+    walk(tree)
+    return m
+  }, [tree])
+  const allEdges = useMemo(() => {
+    const out: { id: string; parent: string; child: string; color: string }[] = []
+    const walk = (it: TItem) =>
+      it.children.forEach((c) => {
+        out.push({ id: `${it.id}>${c.id}`, parent: it.id, child: c.id, color: c.color })
+        walk(c)
+      })
+    walk(tree)
+    return out
+  }, [tree])
+  const expandableIds = useMemo(
+    () => [...itemById.values()].filter((it) => it.children.length).map((it) => it.id),
+    [itemById],
+  )
+  const allExpanded = expandableIds.every((id) => expanded.has(id))
+  function toggleAll() {
+    setExpanded(allExpanded ? new Set(['root']) : new Set(expandableIds))
+  }
   function toggle(item: TItem) {
     if (item.children.length === 0) return
     setExpanded((prev) => {
@@ -125,24 +159,110 @@ export function TreeView() {
     })
   }
 
-  // 连线:每个可见 item → 其可见子节点
-  const links: { id: string; d: string; color: string }[] = []
-  for (const { item, x, y } of placed) {
-    if (!expanded.has(item.id)) continue
-    for (const child of item.children) {
-      const cp = posById.get(child.id)
-      if (!cp) continue
-      const midx = (x + cp.x) / 2
-      links.push({
-        id: `${item.id}>${child.id}`,
-        d: `M ${x} ${y} C ${midx} ${y}, ${midx} ${cp.y}, ${cp.x} ${cp.y}`,
-        color: child.color,
-      })
+  // —— 目标布局(仅含当前可见节点)——
+  const { targetPos, width, height } = useMemo(() => {
+    const { placed, width, height } = layout(tree, expanded)
+    const targetPos = new Map<string, { x: number; y: number }>()
+    for (const p of placed) targetPos.set(p.item.id, { x: p.x, y: p.y })
+    return { targetPos, width, height }
+  }, [tree, expanded])
+
+  // —— 逐帧插值:节点与连线同源驱动,彻底消除「线先到、字滞后」——
+  const posRef = useRef<Map<string, AnimPos>>(new Map())
+  const rafRef = useRef<number | null>(null)
+  const [frame, setFrame] = useState<Map<string, AnimPos>>(new Map())
+
+  useEffect(() => {
+    const start = posRef.current
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    const D = reduce ? 0 : 480
+
+    interface Spec {
+      fx: number
+      fy: number
+      fo: number
+      tx: number
+      ty: number
+      to: number
     }
-  }
+    const specs = new Map<string, Spec>()
+
+    // 进入 / 保持:新节点从母节点当前(或目标)位置抽出来 + 淡入
+    targetPos.forEach((tp, id) => {
+      const cur = start.get(id)
+      if (cur) {
+        specs.set(id, { fx: cur.x, fy: cur.y, fo: cur.opacity, tx: tp.x, ty: tp.y, to: 1 })
+      } else {
+        const par = parentOf.get(id)
+        const from = (par && (start.get(par) ?? targetPos.get(par))) || tp
+        specs.set(id, { fx: from.x, fy: from.y, fo: 0, tx: tp.x, ty: tp.y, to: 1 })
+      }
+    })
+    // 退出:向母节点目标位置收回 + 淡出
+    start.forEach((cur, id) => {
+      if (targetPos.has(id)) return
+      const par = parentOf.get(id)
+      const to = (par && targetPos.get(par)) || cur
+      specs.set(id, { fx: cur.x, fy: cur.y, fo: cur.opacity, tx: to.x, ty: to.y, to: 0 })
+    })
+
+    const finalize = () => {
+      const fin = new Map<string, AnimPos>()
+      targetPos.forEach((tp, id) => fin.set(id, { x: tp.x, y: tp.y, opacity: 1 }))
+      posRef.current = fin
+      setFrame(fin)
+    }
+
+    if (D === 0) {
+      finalize()
+      return
+    }
+
+    let t0: number | null = null
+    const tick = (now: number) => {
+      if (t0 === null) t0 = now
+      const k = Math.min(1, (now - t0) / D)
+      const e = 1 - Math.pow(1 - k, 3) // easeOutCubic
+      const m = new Map<string, AnimPos>()
+      specs.forEach((s, id) =>
+        m.set(id, {
+          x: s.fx + (s.tx - s.fx) * e,
+          y: s.fy + (s.ty - s.fy) * e,
+          opacity: s.fo + (s.to - s.fo) * e,
+        }),
+      )
+      posRef.current = m
+      setFrame(m)
+      if (k < 1) rafRef.current = requestAnimationFrame(tick)
+      else finalize()
+    }
+    rafRef.current = requestAnimationFrame(tick)
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    }
+  }, [targetPos, parentOf])
+
+  // 连线:两端都在帧里才画(自然涵盖生长/收回中的子树),路径由同一组插值位置算出
+  const links = allEdges
+    .map((e) => {
+      const p = frame.get(e.parent)
+      const c = frame.get(e.child)
+      if (!p || !c) return null
+      const midx = (p.x + c.x) / 2
+      return {
+        id: e.id,
+        d: `M ${p.x} ${p.y} C ${midx} ${p.y}, ${midx} ${c.y}, ${c.x} ${c.y}`,
+        color: e.color,
+        opacity: Math.min(p.opacity, c.opacity),
+      }
+    })
+    .filter((l): l is NonNullable<typeof l> => l !== null)
 
   return (
     <div className="view">
+      <button className="view__control mono" onClick={toggleAll}>
+        {allExpanded ? '只看脉络' : '展开全部'}
+      </button>
       <div className="view__canvas">
         <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
           <g>
@@ -152,21 +272,23 @@ export function TreeView() {
                 className="glink"
                 d={l.d}
                 stroke={l.color}
-                strokeOpacity={0.5}
+                strokeOpacity={0.5 * l.opacity}
                 strokeWidth={1.4}
               />
             ))}
           </g>
           <g>
-            {placed.map(({ item, x, y }) => {
+            {[...frame.entries()].map(([id, p]) => {
+              const item = itemById.get(id)
+              if (!item) return null
               const isLeaf = item.kind === 'form'
               const canExpand = item.children.length > 0
-              const open = expanded.has(item.id)
+              const open = expanded.has(id)
               return (
                 <g
-                  key={item.id}
+                  key={id}
                   className="gnode"
-                  style={{ transform: `translate(${x}px, ${y}px)` }}
+                  style={{ transform: `translate(${p.x}px, ${p.y}px)`, opacity: p.opacity }}
                   onClick={() => toggle(item)}
                   onMouseEnter={() => item.dataNode && setHover(item.dataNode)}
                 >

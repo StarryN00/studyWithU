@@ -9,3 +9,6 @@ dist-ssr
 
 # 工具的 brainstorm 会话状态,非项目源码
 .superpowers/
+
+# 资产生成脚本的输出目录(产物已纳入 src/assets/map/)
+outputs/

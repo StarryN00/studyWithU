@@ -1,7 +1,8 @@
-import { useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { DomainId, MacroTopic } from '../data/types'
 import { DOMAINS, DOMAIN_ORDER, GRADE_NAMES, domainColor } from '../data/domains'
 import elementary from '../../data/math-elementary.json'
+import treeImageUrl from '../assets/map/haeckel-style-tree-fine-engraving.png'
 import './map.css'
 import './views.css'
 
@@ -12,29 +13,22 @@ import './views.css'
 
 const TOPICS = elementary as unknown as MacroTopic[]
 
-const W = 1040
+const W = 1120
 const TRUNK_X = 470
 const BAND_H = 210
 const GRADES = 6
-const TOP_PAD = 130
-const BASE_PAD = 200
+const TOP_PAD = 190
+const BASE_PAD = 230
 const H = TOP_PAD + GRADES * BAND_H + BASE_PAD // 总高
-const Y_TOP = 150 // 主干顶
-const Y_BOT = H - BASE_PAD + 50 // 主干基
+const Y_TOP = TOP_PAD + 8 // 主干顶
+const Y_BOT = H - BASE_PAD + 54 // 主干基
 
 // 主干中线(极轻 S 形摆动)与半宽(基部粗、顶部细)
 function cx(y: number): number {
   return TRUNK_X + Math.sin((Y_BOT - y) / 260) * 9
 }
-function trunkHalf(y: number): number {
-  const t = Math.min(1, Math.max(0, (y - Y_TOP) / (Y_BOT - Y_TOP)))
-  return 7 + t * t * 21
-}
 function bandCenter(grade: number): number {
   return Y_BOT - 50 - (grade - 0.5) * BAND_H
-}
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t
 }
 // 由 id 派生稳定的伪随机扰动,让枝条有机而不抖动
 function jitter(seed: string, salt: string): number {
@@ -54,18 +48,18 @@ interface PlacedTopic {
   topic: MacroTopic
   side: -1 | 1
   box: Box
-  branch: string
-  twig: string
   lit: boolean
+  order: number
 }
 
 function boxFor(name: string, cxp: number, cyp: number): Box {
-  const w = name.length * 13 + 22
-  return { x: cxp - w / 2, y: cyp - 13, w, h: 26 }
+  const w = name.length * 15 + 34
+  return { x: cxp - w / 2, y: cyp - 16, w, h: 32 }
 }
 
 function layout() {
   const bands = []
+  let branchOrder = 0
   for (let g = 1; g <= GRADES; g++) {
     const list = TOPICS.filter((t) => t.grade === g).sort(
       (a, b) => DOMAIN_ORDER.indexOf(a.domain) - DOMAIN_ORDER.indexOf(b.domain),
@@ -85,63 +79,16 @@ function layout() {
       sideList.forEach((t, j) => {
         const frac = c === 1 ? 0.5 : j / (c - 1)
         const yLabel = center - BAND_H * 0.32 + frac * (BAND_H * 0.64)
-        const dist = 150 + (j % 2) * 88 + jitter(t.id, 'd') * 44
+        const dist = 160 + (j % 2) * 96 + jitter(t.id, 'd') * 48
         const cxp = TRUNK_X + side * dist
         const box = boxFor(t.name, cxp, yLabel)
 
-        const anchorY = yLabel + 14 + jitter(t.id, 'a') * 26
-        const anchorX = cx(anchorY) + side * trunkHalf(anchorY) * 0.7
-        const innerX = box.x + (side < 0 ? box.w : 0) // 朝向主干一侧的框边
-        const dx = innerX - anchorX
-        const branch =
-          `M ${anchorX.toFixed(1)} ${anchorY.toFixed(1)} ` +
-          `C ${(anchorX + dx * 0.45).toFixed(1)} ${(anchorY - 8).toFixed(1)}, ` +
-          `${(innerX - dx * 0.35).toFixed(1)} ${(yLabel + 4).toFixed(1)}, ` +
-          `${innerX.toFixed(1)} ${yLabel.toFixed(1)}`
-
-        // 一根小回枝,增添版画的有机感
-        const mpx = anchorX + dx * 0.5
-        const mpy = lerp(anchorY, yLabel, 0.5)
-        const curl = 8 + jitter(t.id, 't') * 8
-        const twig =
-          `M ${mpx.toFixed(1)} ${mpy.toFixed(1)} ` +
-          `q ${(side * curl).toFixed(1)} ${(-curl * 1.6).toFixed(1)}, ` +
-          `${(side * curl * 0.4).toFixed(1)} ${(-curl * 2.4).toFixed(1)}`
-
-        placed.push({ topic: t, side, box, branch, twig, lit })
+        placed.push({ topic: t, side, box, lit, order: branchOrder++ })
       })
     }
     bands.push({ grade: g, center, lit, placed })
   }
-
-  // 主干填充路径(左缘上行,右缘下行)
-  const N = 26
-  const leftPts: string[] = []
-  const rightPts: string[] = []
-  for (let i = 0; i <= N; i++) {
-    const y = lerp(Y_TOP, Y_BOT, i / N)
-    leftPts.push(`${(cx(y) - trunkHalf(y)).toFixed(1)},${y.toFixed(1)}`)
-    rightPts.push(`${(cx(y) + trunkHalf(y)).toFixed(1)},${y.toFixed(1)}`)
-  }
-  const trunk = `M ${leftPts.join(' L ')} L ${rightPts.reverse().join(' L ')} Z`
-
-  // 树根:基部向下散开
-  const baseX = cx(Y_BOT)
-  const roots = [-1, -0.55, 0, 0.6, 1].map((k, i) => {
-    const ex = baseX + k * (90 + i * 28)
-    const ey = Y_BOT + 70 + Math.abs(k) * 36
-    return `M ${baseX.toFixed(1)} ${(Y_BOT - 6).toFixed(1)} Q ${(baseX + k * 30).toFixed(1)} ${(Y_BOT + 36).toFixed(1)}, ${ex.toFixed(1)} ${ey.toFixed(1)}`
-  })
-
-  // 树冠:顶端散出细枝
-  const topX = cx(Y_TOP)
-  const canopy = [-1, -0.5, 0, 0.5, 1].map((k) => {
-    const ex = topX + k * 70
-    const ey = Y_TOP - 70 - (1 - Math.abs(k)) * 26
-    return `M ${topX.toFixed(1)} ${Y_TOP.toFixed(1)} Q ${(topX + k * 20).toFixed(1)} ${(Y_TOP - 40).toFixed(1)}, ${ex.toFixed(1)} ${ey.toFixed(1)}`
-  })
-
-  return { bands, trunk, roots, canopy, baseX, topX }
+  return { bands, baseX: cx(Y_BOT), topX: cx(Y_TOP) }
 }
 
 interface HoverInfo {
@@ -152,83 +99,85 @@ interface HoverInfo {
 }
 
 export function MapView({ onEnter }: { onEnter: () => void }) {
-  const { bands, trunk, roots, canopy, baseX, topX } = useMemo(layout, [])
+  const { bands, baseX, topX } = useMemo(layout, [])
   const [hover, setHover] = useState<HoverInfo | null>(null)
+  const [selectedGrade, setSelectedGrade] = useState(1)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const scroller = scrollRef.current
+    if (!scroller) return
+    scroller.scrollLeft = Math.max(0, (scroller.scrollWidth - scroller.clientWidth) / 2)
+  }, [])
 
   return (
     <div className="map view">
-      <div className="map__scroll">
-        <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
-          {/* 根 · 干 · 冠 */}
-          <g>
-            {roots.map((d, i) => (
-              <path key={`r${i}`} className="map-root" d={d} />
-            ))}
-            <path className="map-trunk" d={trunk} />
-            {canopy.map((d, i) => (
-              <path key={`c${i}`} className="map-canopy" d={d} />
-            ))}
-          </g>
+      <div className="map__scroll" ref={scrollRef}>
+        <div className="map-plate" style={{ width: W, height: H }}>
+          <img className="map-layer map-layer--tree" src={treeImageUrl} alt="" aria-hidden="true" />
 
-          {/* 起点(树基)与树梢 */}
-          <g className="map-origin">
-            <rect x={baseX - 86} y={Y_BOT + 96} width={172} height={30} rx={8} />
-            <text x={baseX} y={Y_BOT + 111}>
-              数一数 · 万物之始
-            </text>
-          </g>
-          <g className="map-top">
-            <text x={topX} y={Y_TOP - 96}>
-              ↑ 通向初中数学
-            </text>
-          </g>
+          <div className="map-plate-head">
+            <span className="map-plate-kicker map-plate-kicker--left">MATHEMATICA ELEMENTARIA</span>
+            <span className="map-plate-kicker map-plate-kicker--right">PLATE I</span>
+            <h2>小学数学 · 知识之树</h2>
+            <p>好奇 · 探索 · 惊喜</p>
+          </div>
+
+          <div className="map-origin" style={{ left: baseX - 92, top: Y_BOT + 102 }}>
+            数一数 · 万物之始
+          </div>
+          <div className="map-top" style={{ left: topX + 94, top: Y_TOP - 10 }}>
+            ↑ 通向初中数学
+          </div>
 
           {/* 各年级:枝 + 框 + 右侧括注 */}
           {bands.map((band) => {
-            const top = band.center - BAND_H * 0.42
-            const bot = band.center + BAND_H * 0.42
-            const bx = W - 92
+            const bx = W - 118
+            const gradeSelected = band.grade === selectedGrade
             return (
-              <g key={band.grade}>
-                {/* 右侧年级括注 */}
-                <path
-                  className="map-bracket"
-                  d={`M ${bx + 10} ${top} q -10 0 -10 10 L ${bx} ${band.center - 8} q 0 8 -8 8 q 8 0 8 8 L ${bx} ${bot - 10} q 0 10 10 10`}
-                />
-                <text
-                  className={'map-grade' + (band.lit ? ' map-grade--lit' : '')}
-                  x={bx + 16}
-                  y={band.center}
+              <div key={band.grade} className="map-grade-band">
+                <button
+                  className={
+                    'map-grade' +
+                    (band.lit ? ' map-grade--lit' : '') +
+                    (gradeSelected ? ' map-grade--selected' : '')
+                  }
+                  style={{ ['--gi']: band.grade - 1, left: bx + 16, top: band.center - 10 } as CSSProperties}
+                  type="button"
+                  aria-pressed={gradeSelected}
+                  onClick={() => setSelectedGrade(band.grade)}
                 >
                   {GRADE_NAMES[band.grade - 1]}
-                </text>
+                </button>
                 {band.lit && (
-                  <g className="map-enter" onClick={onEnter}>
-                    <text x={bx + 16} y={band.center + 22}>
-                      ▶ 点开详图
-                    </text>
-                  </g>
+                  <button
+                    className="map-enter"
+                    style={{ ['--gi']: band.grade - 1, left: bx + 16, top: band.center + 12 } as CSSProperties}
+                    onClick={onEnter}
+                  >
+                    点开详图
+                  </button>
                 )}
-
-                {/* 枝条 */}
-                {band.placed.map((p) => (
-                  <path
-                    key={`b-${p.topic.id}`}
-                    className={'map-branch' + (p.lit ? ' map-branch--lit' : '')}
-                    d={p.branch}
-                    style={p.lit ? { stroke: domainColor(p.topic.domain) } : undefined}
-                  />
-                ))}
-                {band.placed.map((p) => (
-                  <path key={`t-${p.topic.id}`} className="map-twig" d={p.twig} />
-                ))}
 
                 {/* 知识点框 */}
                 {band.placed.map((p) => (
-                  <g
+                  <button
                     key={`x-${p.topic.id}`}
-                    className={'map-box' + (p.lit ? ' map-box--lit' : ' map-box--bud')}
-                    style={{ ['--dc']: domainColor(p.topic.domain) } as CSSProperties}
+                    className={
+                      'map-box' +
+                      (p.lit ? ' map-box--lit' : ' map-box--bud') +
+                      (p.topic.grade === selectedGrade ? ' map-box--selected' : ' map-box--dim')
+                    }
+                    style={
+                      {
+                        ['--dc']: domainColor(p.topic.domain),
+                        '--i': p.order,
+                        left: p.box.x,
+                        top: p.box.y,
+                        width: p.box.w,
+                        height: p.box.h,
+                      } as CSSProperties
+                    }
                     onClick={p.lit ? onEnter : undefined}
                     onMouseEnter={() =>
                       setHover({
@@ -239,17 +188,27 @@ export function MapView({ onEnter }: { onEnter: () => void }) {
                       })
                     }
                     onMouseLeave={() => setHover(null)}
+                    type="button"
+                    aria-disabled={!p.lit}
                   >
-                    <rect x={p.box.x} y={p.box.y} width={p.box.w} height={p.box.h} rx={6} />
-                    <text x={p.box.x + p.box.w / 2} y={p.box.y + p.box.h / 2}>
-                      {p.topic.name}
-                    </text>
-                  </g>
+                    <span className={'map-domain-pin' + (p.side < 0 ? ' map-domain-pin--right' : '')} />
+                    <span>{p.topic.name}</span>
+                  </button>
                 ))}
-              </g>
+              </div>
             )
           })}
-        </svg>
+
+          <div className="map-side-taxonomy map-side-taxonomy--a" style={{ left: W - 50, top: Y_TOP + 40 }}>
+            小学数学
+          </div>
+          <div className="map-side-taxonomy map-side-taxonomy--b" style={{ left: W - 50, top: Y_TOP + BAND_H * 2.2 }}>
+            四大领域
+          </div>
+          <div className="map-side-taxonomy map-side-taxonomy--c" style={{ left: W - 50, top: Y_TOP + BAND_H * 4.25 }}>
+            六年脉络
+          </div>
+        </div>
       </div>
 
       {/* 领域图例 */}
